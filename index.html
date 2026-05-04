@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Clock - 数学极客表盘</title>
+  <!-- KaTeX CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 主题切换 & 设置按钮 -->
+  <div class="top-bar">
+    <button id="settings-btn" aria-label="设置" title="设置">⚙</button>
+    <button id="theme-toggle" aria-label="切换主题">
+      <span class="theme-icon"></span>
+    </button>
+  </div>
+
+  <!-- 主容器 -->
+  <main class="container">
+    <!-- 表盘区域 -->
+    <section class="clock-section">
+      <div class="clock-wrapper">
+        <div class="clock-face" id="clock-face">
+          <!-- 公式刻度由 JS 动态生成 -->
+          <!-- 指针 -->
+          <div class="hand hour-hand" id="hour-hand"></div>
+          <div class="hand minute-hand" id="minute-hand"></div>
+          <div class="hand second-hand" id="second-hand"></div>
+          <!-- 中心圆点 -->
+          <div class="center-dot"></div>
+        </div>
+      </div>
+      <!-- 公式信息面板：替代表盘内 Tooltip，防止遮挡 -->
+      <div class="info-panel" id="info-panel">
+        <div class="info-result" id="info-result">悬停公式查看详情</div>
+        <div class="info-branch" id="info-branch"></div>
+        <div class="info-trivia" id="info-trivia"></div>
+      </div>
+      <!-- 移动端数字时钟 -->
+      <div class="digital-clock" id="digital-clock"></div>
+    </section>
+
+    <!-- 侧边栏：番茄钟 & 闹钟 -->
+    <aside class="sidebar" id="sidebar">
+      <!-- 番茄钟 -->
+      <div class="panel pomodoro-panel">
+        <h2>番茄钟</h2>
+        <div class="pomodoro-settings">
+          <label class="pomo-field">
+            <span>专注</span>
+            <div class="pomo-input-row">
+              <input type="number" id="pomo-work" value="25" min="1" max="120">
+              <span class="unit">分钟</span>
+            </div>
+          </label>
+          <label class="pomo-field">
+            <span>休息</span>
+            <div class="pomo-input-row">
+              <input type="number" id="pomo-break" value="5" min="1" max="60">
+              <span class="unit">分钟</span>
+            </div>
+          </label>
+        </div>
+        <div class="pomodoro-display" id="pomodoro-display">25:00</div>
+        <div class="pomodoro-controls">
+          <button id="pomodoro-start">开始</button>
+          <button id="pomodoro-reset">重置</button>
+        </div>
+        <div class="pomodoro-status" id="pomodoro-status">专注时间</div>
+      </div>
+
+      <!-- 硬核闹钟 -->
+      <div class="panel alarm-panel">
+        <h2>硬核闹钟</h2>
+        <div class="alarm-setter">
+          <input type="time" id="alarm-time" step="1">
+          <button id="alarm-set-btn">设定</button>
+        </div>
+        <label class="alarm-difficulty">
+          <span>难度</span>
+          <select id="alarm-difficulty">
+            <option value="easy">基础微积分</option>
+            <option value="hard">常微分方程</option>
+          </select>
+        </label>
+        <div class="alarm-status" id="alarm-status">未设定</div>
+        <button id="alarm-cancel-btn" class="hidden">取消闹钟</button>
+      </div>
+    </aside>
+
+    <!-- 移动端侧边栏切换 -->
+    <button class="sidebar-toggle" id="sidebar-toggle" aria-label="展开工具栏">
+      <span></span>
+    </button>
+  </main>
+
+  <!-- 闹钟模态框 -->
+  <div class="modal-overlay hidden" id="alarm-modal">
+    <div class="modal-card">
+      <h2>闹钟响了!</h2>
+      <p>请解答以下问题来关闭闹钟:</p>
+      <div class="math-problem" id="math-problem"></div>
+      <div id="alarm-options" class="alarm-options"></div>
+      <div class="modal-input-row" id="alarm-text-input">
+        <input type="text" id="alarm-answer-input" placeholder="输入答案..." autocomplete="off">
+        <button id="alarm-submit">提交</button>
+      </div>
+      <p class="modal-feedback hidden" id="modal-feedback"></p>
+    </div>
+  </div>
+
+  <!-- 设置模态框 -->
+  <div class="modal-overlay hidden" id="settings-modal">
+    <div class="modal-card settings-card">
+      <h2>设置</h2>
+
+      <div class="setting-group">
+        <div class="theme-row">
+          <label for="theme-select">主题风格</label>
+          <select id="theme-select">
+            <option value="chalkboard"> 学术黑板</option>
+            <option value="minimal">极简现代</option>
+            <option value="midnight">深邃午夜</option>
+            <option value="cyberpunk">赛博朋克</option>
+          </select>
+        </div>
+        <div class="custom-bg-row">
+          <label for="custom-bg-color">自定义背景</label>
+          <input type="color" id="custom-bg-color" value="#2b4a3e">
+          <span class="bg-hint">覆盖主题背景色</span>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <label class="setting-row">
+          <span class="setting-label">秒针模式</span>
+          <div class="setting-toggle-group">
+            <button class="setting-btn active" data-setting="secondHand" data-value="smooth">平滑</button>
+            <button class="setting-btn" data-setting="secondHand" data-value="tick">滴答</button>
+          </div>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-label">数字时钟</span>
+          <div class="setting-toggle-group">
+            <button class="setting-btn" data-setting="digitalClock" data-value="hide">隐藏</button>
+            <button class="setting-btn active" data-setting="digitalClock" data-value="show">显示</button>
+          </div>
+        </label>
+
+        <label class="setting-row">
+          <span class="setting-label">表盘刻度</span>
+          <div class="setting-toggle-group">
+            <button class="setting-btn" data-setting="tickMarks" data-value="hide">隐藏</button>
+            <button class="setting-btn active" data-setting="tickMarks" data-value="show">显示</button>
+          </div>
+        </label>
+      </div>
+
+      <div class="setting-group">
+        <h3>自定义公式</h3>
+        <div class="custom-formula-list" id="custom-formula-list">
+          <!-- JS 动态生成 -->
+        </div>
+      </div>
+
+      <button class="modal-close-btn" id="settings-close">关闭</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
