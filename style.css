@@ -150,7 +150,6 @@
 }
 
 html, body {
-  height: 100%;
   overflow-x: hidden;
 }
 
@@ -159,8 +158,9 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  min-height: 100vh;
   transition: background var(--transition-speed), color var(--transition-speed);
 }
 
@@ -987,15 +987,13 @@ body.show-digital .digital-clock {
 
   .sidebar {
     width: 100%;
-    max-width: 360px;
-    flex-direction: row;
-    flex-wrap: wrap;
+    max-width: 420px;
+    flex-direction: column;
     display: none;
   }
 
   .sidebar .panel {
-    flex: 1;
-    min-width: 160px;
+    width: 100%;
   }
 
   .sidebar.open {
@@ -1017,9 +1015,9 @@ body.show-digital .digital-clock {
   }
 
   .formula-marker {
-    width: 52px;
-    height: 52px;
-    font-size: 0.62rem;
+    width: 48px;
+    height: 48px;
+    font-size: 0.58rem;
   }
 
   .digital-clock {
